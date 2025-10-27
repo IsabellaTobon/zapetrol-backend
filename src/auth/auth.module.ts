@@ -13,12 +13,18 @@ function parseDurationToSeconds(raw: string): number {
   const value = Number(m[1]);
   const unit = (m[2] || 's').toLowerCase();
   switch (unit) {
-    case 's': return value;
-    case 'm': return value * 60;
-    case 'h': return value * 60 * 60;
-    case 'd': return value * 60 * 60 * 24;
-    case 'w': return value * 60 * 60 * 24 * 7;
-    default:  return 24 * 60 * 60;
+    case 's':
+      return value;
+    case 'm':
+      return value * 60;
+    case 'h':
+      return value * 60 * 60;
+    case 'd':
+      return value * 60 * 60 * 24;
+    case 'w':
+      return value * 60 * 60 * 24 * 7;
+    default:
+      return 24 * 60 * 60;
   }
 }
 
