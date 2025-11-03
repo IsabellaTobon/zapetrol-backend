@@ -6,6 +6,8 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export type UserRole = 'admin' | 'user';
+
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
@@ -19,6 +21,9 @@ export class User {
 
   @Column({ nullable: true })
   name: string;
+
+  @Column({ type: 'varchar', length: 10, default: 'user' })
+  role: UserRole;
 
   @CreateDateColumn()
   createdAt: Date;
