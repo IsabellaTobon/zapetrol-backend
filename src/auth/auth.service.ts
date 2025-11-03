@@ -6,6 +6,7 @@ import {
 import { UsersService } from '../users/users.service';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
+import { UserRole } from 'src/users/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -20,7 +21,7 @@ export class AuthService {
 
     const hash = await bcrypt.hash(password, 10);
     const user = await this.users.create({ email, password: hash, name });
-    return this.signToken(user.id, user.email);
+    return this.signToken(user.id, user.email, user.role);
   }
 
   async login(email: string, password: string) {
@@ -28,10 +29,10 @@ export class AuthService {
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) throw new UnauthorizedException('Credenciales inválidas');
-    return this.signToken(user.id, user.email);
+    return this.signToken(user.id, user.email, user.role);
   }
 
-  private signToken(sub: number, email: string) {
-    return { access_token: this.jwt.sign({ sub, email }) };
+  private signToken(sub: number, email: string, role: UserRole) {
+    return { access_token: this.jwt.sign({ sub, email, role }) };
   }
 }
