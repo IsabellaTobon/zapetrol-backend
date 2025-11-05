@@ -5,6 +5,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
+import { RolesGuard } from './roles.guard';
 
 /** Parse '1d', '2h', '30m', '45s', '7w' -> seconds */
 function parseDurationToSeconds(raw: string): number {
@@ -46,6 +47,7 @@ function parseDurationToSeconds(raw: string): number {
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, RolesGuard],
+  exports: [RolesGuard],
 })
 export class AuthModule {}

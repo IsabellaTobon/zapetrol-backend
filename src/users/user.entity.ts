@@ -8,6 +8,11 @@ import {
 
 export type UserRole = 'admin' | 'user';
 
+export const USER_ROLES = {
+  ADMIN: 'admin' as UserRole,
+  USER: 'user' as UserRole,
+} as const;
+
 @Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
