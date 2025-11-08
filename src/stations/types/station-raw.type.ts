@@ -1,27 +1,31 @@
 export interface StationRaw {
-  IDEstacion: string;
-  Rótulo: string; // Marca de la estación (Repsol, Cepsa, etc.)
+  // Identificación
+  idEstacion: number;
+  nombreEstacion: string;
+  marca: string;
 
   // Ubicación geográfica
-  Latitud: string;
-  Longitud: string;
-  Provincia: string;
-  Localidad: string;
-  Municipio: string;
-  'Código postal': string;
-  Dirección: string;
+  latitud: string;
+  longitud: string;
+  provincia: string;
+  provinciaDistrito: string;
+  localidad: string;
+  municipio?: string;
+  idMunicipio: number;
+  codPostal: string;
+  direccion: string;
 
-  // Precios de combustibles
-  'Precio Gasolina 95 E5': string;
-  'Precio Gasolina 98 E5': string;
-  'Precio Gasóleo A': string; // Diesel
+  // Precios de combustibles - Gasolina
+  Gasolina95: string;
+  Gasolina95_media: string;
+  Gasolina98: string;
+  Gasolina98_media: string;
 
-  // Horario de la estación
-  Horario: string;
+  // Precios de combustibles - Diesel
+  Diesel: string;
+  Diesel_media: string;
 
-  // Margen (información adicional de precios)
-  Margen: string;
-
-  // Fecha de actualización de precios
-  'Fecha actualización': string;
+  // Información adicional
+  horario: string;
+  lastUpdate: string;
 }
