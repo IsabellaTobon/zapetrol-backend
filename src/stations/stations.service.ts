@@ -1,114 +1,94 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { StationRaw } from './types/station-raw.type';
+import { StationDetailsDto } from './dto/station-details.dto';
+import { StationDetailsResponse } from './types/station-details.response';
 
 @Injectable()
 export class StationsService {
-  // Registrar eventos y errores
   private readonly logger = new Logger(StationsService.name);
+  private readonly apiBaseUrl: string;
 
-  private readonly apiUrl: string;
-
-  constructor(private configService: ConfigService) {
-    // Obtenemos URL base API desde variable de entorno
-    this.apiUrl = this.configService.get<string>('API_BASE_URL')!;
+  constructor(private readonly configService: ConfigService) {
+    this.apiBaseUrl = this.configService.get<string>('API_BASE_URL')!;
   }
 
-  async getAllStations(): Promise<StationRaw[]> {
-    try {
-      this.logger.log('Obteniendo todas las estaciones...');
-      const response = await fetch(`${this.apiUrl}/estaciones`);
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      return (await response.json()) as StationRaw[];
-    } catch (error) {
-      this.logger.error('Error al obtener todas las estaciones', error);
-      throw error;
-    }
+  // Convierte strings numéricos a number o devuelve undefined si no aplica
+  private toNumber(value?: string): number | undefined {
+    if (!value) return undefined;
+    const n = Number(value);
+    return Number.isNaN(n) ? undefined : n;
   }
 
-  async getStationById(id: number): Promise<StationRaw> {
+  // GET /estaciones/detalles/:idEstacion
+  // Llama a la API externa, valida respuesta y devuelve datos limpios
+  async getStationDetailsById(stationId: number): Promise<StationDetailsDto> {
+    this.logger.log(`Obteniendo detalles de estación con id=${stationId}`);
+
+    const url = `${this.apiBaseUrl}/estaciones/detalles/${stationId}`;
+    let response: Response;
+
     try {
-      this.logger.log(`Obteniendo detalles de la estación ${id}...`);
-      const response = await fetch(`${this.apiUrl}/estaciones/detalles/${id}`);
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      return (await response.json()) as StationRaw;
-    } catch (error) {
-      this.logger.error(`Error al obtener estación con ID ${id}`, error);
-      throw error;
-    }
-  }
-
-  async getNearbyStations(
-    latitud: number,
-    longitud: number,
-    radio: number = 5,
-  ): Promise<StationRaw[]> {
-    try {
-      this.logger.log(
-        `Buscando estaciones cercanas a lat:${latitud}, lon:${longitud}, radio:${radio}km...`,
-      );
-
-      const url = `${this.apiUrl}/estaciones/cercanas?latitud=${latitud}&longitud=${longitud}&radio=${radio}`;
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      return (await response.json()) as StationRaw[];
-    } catch (error) {
-      this.logger.error('Error al obtener estaciones cercanas', error);
-      throw error;
-    }
-  }
-
-  async getByProvincia(provincia: string): Promise<StationRaw[]> {
-    try {
-      this.logger.log(`Buscando estaciones en la provincia: ${provincia}...`);
-      const response = await fetch(
-        `${this.apiUrl}/estaciones/provincia/${encodeURIComponent(provincia)}`,
-      );
-
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      return (await response.json()) as StationRaw[];
-    } catch (error) {
+      response = await fetch(url);
+    } catch (err) {
       this.logger.error(
-        `Error al obtener estaciones de la provincia ${provincia}`,
-        error,
+        `Error de red al conectar con la API externa: ${(err as Error).message}`,
       );
-      throw error;
+      throw new InternalServerErrorException(
+        'Error al conectar con la API externa',
+      );
     }
-  }
 
-  async getByLocalidad(localidad: string): Promise<StationRaw[]> {
-    try {
-      this.logger.log(`Buscando estaciones en la localidad: ${localidad}...`);
-      const response = await fetch(
-        `${this.apiUrl}/estaciones/localidad/${encodeURIComponent(localidad)}`,
+    if (response.status === 404) {
+      this.logger.warn(
+        `Estación no encontrada en la API externa (id=${stationId})`,
       );
+      throw new NotFoundException('Estación no encontrada');
+    }
 
-      if (!response.ok) {
-        throw new Error(`Error HTTP: ${response.status}`);
-      }
-
-      return (await response.json()) as StationRaw[];
-    } catch (error) {
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
       this.logger.error(
-        `Error al obtener estaciones de la localidad ${localidad}`,
-        error,
+        `Error HTTP ${response.status} desde la API externa — cuerpo: ${body}`,
       );
-      throw error;
+      throw new InternalServerErrorException(
+        'Error al obtener los datos de la estación',
+      );
     }
+
+    const raw = (await response.json()) as StationDetailsResponse;
+
+    // Retornamos directamente el objeto con nombres limpios y tipos correctos
+    return {
+      stationId: raw.idEstacion,
+      stationName: raw.nombreEstacion,
+      longitude: Number(raw.longitud),
+      latitude: Number(raw.latitud),
+      side: raw.margen,
+      postalCode: raw.codPostal,
+      address: raw.direccion,
+      openingHours: raw.horario,
+      saleType: raw.tipoVenta,
+      municipalityId: raw.idMunicipio,
+      lastUpdate: raw.lastUpdate,
+      locality: raw.localidad,
+      Gasoline95: this.toNumber(raw.Gasolina95),
+      Gasoline95_avg: this.toNumber(raw.Gasolina95_media),
+      Gasoline98: this.toNumber(raw.Gasolina98),
+      Gasoline98_avg: this.toNumber(raw.Gasolina98_media),
+      Diesel: this.toNumber(raw.Diesel),
+      Diesel_avg: this.toNumber(raw.Diesel_media),
+      DieselPremium: this.toNumber(raw.DieselPremium),
+      DieselPremium_avg: this.toNumber(raw.DieselPremium_media),
+      DieselB_avg: this.toNumber(raw.DieselB_media),
+      LPG_avg: this.toNumber(raw.GLP_media),
+      province: raw.provincia,
+      provinceDistrict: raw.provinciaDistrito,
+      brand: raw.marca,
+    };
   }
 }
