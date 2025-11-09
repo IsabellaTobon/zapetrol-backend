@@ -1,4 +1,4 @@
-export interface StationByMunicipioResponse {
+export interface StationsByMunicipalityResponse {
   idEstacion: number;
   nombre: string;
   direccion: string;

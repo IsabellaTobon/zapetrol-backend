@@ -13,6 +13,9 @@ import { StationDetailsDto } from './dto/station-details.dto';
 import { StationHistoryResponse } from './types/station-history.response';
 import { StationHistoryDto } from './dto/station-history.dto';
 
+import { StationsByMunicipalityResponse } from './types/stations-by-municipality.response';
+import { StationsByMunicipalityDto } from './dto/stations-by-municipality.dto';
+
 @Injectable()
 export class StationsService {
   private readonly logger = new Logger(StationsService.name);
@@ -116,6 +119,28 @@ export class StationsService {
       };
     } catch (err) {
       this.handleAxiosError(err, 'Histórico no encontrado');
+    }
+  }
+
+  // GET /estaciones/municipio/:idMunicipio
+  async getStationsByMunicipality(
+    municipalityId: number,
+  ): Promise<StationsByMunicipalityDto[]> {
+    this.logger.log(`Listando estaciones municipio id=${municipalityId}`);
+    try {
+      const { data: raw } = await this.client.get<
+        StationsByMunicipalityResponse[]
+      >(`/estaciones/municipio/${municipalityId}`);
+      return raw.map((s) => ({
+        stationId: s.idEstacion,
+        name: s.nombre,
+        address: s.direccion,
+        municipalityId: s.idMunicipio,
+        latitude: s.latitud,
+        longitude: s.longitud,
+      }));
+    } catch (err) {
+      this.handleAxiosError(err);
     }
   }
 }
