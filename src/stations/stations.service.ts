@@ -5,9 +5,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { StationDetailsDto } from './dto/station-details.dto';
-import { StationDetailsResponse } from './types/station-details.response';
 import axios, { AxiosInstance, isAxiosError } from 'axios';
+
+import { StationDetailsResponse } from './types/station-details.response';
+import { StationDetailsDto } from './dto/station-details.dto';
+
+import { StationHistoryResponse } from './types/station-history.response';
+import { StationHistoryDto } from './dto/station-history.dto';
 
 @Injectable()
 export class StationsService {
@@ -81,6 +85,37 @@ export class StationsService {
       };
     } catch (err) {
       this.handleAxiosError(err, 'Estación no encontrada');
+    }
+  }
+
+  // GET /estaciones/historico/:idEstacion?inicio&fin
+  async getStationHistoryById(
+    stationId: number,
+    start?: string,
+    end?: string,
+  ): Promise<StationHistoryDto> {
+    this.logger.log(
+      `Obteniendo histórico id=${stationId} ${start ? `inicio=${start}` : ''} ${end ? `fin=${end}` : ''}`,
+    );
+    try {
+      const { data: raw } = await this.client.get<StationHistoryResponse>(
+        `/estaciones/historico/${stationId}`,
+        { params: { inicio: start, fin: end } },
+      );
+      return {
+        title: raw.title,
+        stationId: raw.estacionId,
+        period: { start: raw.periodo.inicio, end: raw.periodo.fin },
+        resultCount: raw.cantidadResultados,
+        data: raw.data.map((d) => ({
+          id: d.id,
+          stationId: d.idEstacion,
+          timestamp: d.timestamp,
+          price: d.price,
+        })),
+      };
+    } catch (err) {
+      this.handleAxiosError(err, 'Histórico no encontrado');
     }
   }
 }
