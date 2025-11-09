@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -15,6 +16,9 @@ import { StationHistoryDto } from './dto/station-history.dto';
 
 import { StationsByMunicipalityResponse } from './types/stations-by-municipality.response';
 import { StationsByMunicipalityDto } from './dto/stations-by-municipality.dto';
+
+import { StationInRadiusResponse } from './types/stations-in-radius.response';
+import { StationInRadiusDto } from './dto/stations-in-radius.dto';
 
 @Injectable()
 export class StationsService {
@@ -138,6 +142,48 @@ export class StationsService {
         municipalityId: s.idMunicipio,
         latitude: s.latitud,
         longitude: s.longitud,
+      }));
+    } catch (err) {
+      this.handleAxiosError(err);
+    }
+  }
+
+  // GET /estaciones/radio?latitud&longitud&radio&page&limit
+  async getStationsInRadius(
+    latitude: number,
+    longitude: number,
+    radius: number,
+    page?: number,
+    limit?: number,
+  ): Promise<StationInRadiusDto[]> {
+    if ([latitude, longitude, radius].some((n) => Number.isNaN(n))) {
+      throw new BadRequestException(
+        'latitud, longitud y radio deben ser numéricos',
+      );
+    }
+    this.logger.log(
+      `Buscando por radio lat=${latitude} lon=${longitude} r=${radius} ${page ? `page=${page}` : ''} ${limit ? `limit=${limit}` : ''}`,
+    );
+    try {
+      const { data: raw } = await this.client.get<StationInRadiusResponse[]>(
+        `/estaciones/radio`,
+        {
+          params: {
+            latitud: latitude,
+            longitud: longitude,
+            radio: radius,
+            page,
+            limit,
+          },
+        },
+      );
+      return raw.map((s) => ({
+        id: s._id,
+        name: s.nombre,
+        coordinates: s.coordenadas,
+        distance: s.distancia,
+        province: s.provincia,
+        locality: s.localidad,
       }));
     } catch (err) {
       this.handleAxiosError(err);
