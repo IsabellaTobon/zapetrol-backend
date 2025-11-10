@@ -1,8 +1,8 @@
 import {
-  BadRequestException,
   Controller,
   Get,
   Param,
+  ParseFloatPipe,
   ParseIntPipe,
   Query,
 } from '@nestjs/common';
@@ -45,20 +45,12 @@ export class StationsController {
   // GET /estaciones/radio?latitud&longitud&radio&page&limit
   @Get('radio')
   getByRadius(
-    @Query('latitud') latStr: string,
-    @Query('longitud') lonStr: string,
-    @Query('radio') radiusStr: string,
+    @Query('latitud', ParseFloatPipe) latitude: number,
+    @Query('longitud', ParseFloatPipe) longitude: number,
+    @Query('radio', ParseFloatPipe) radius: number,
     @Query('page') pageStr?: string,
     @Query('limit') limitStr?: string,
   ): Promise<StationInRadiusDto[]> {
-    if ([latStr, lonStr, radiusStr].some((v) => v === undefined)) {
-      throw new BadRequestException(
-        'latitud, longitud y radio son obligatorios',
-      );
-    }
-    const latitude = Number(latStr);
-    const longitude = Number(lonStr);
-    const radius = Number(radiusStr);
     const page = pageStr !== undefined ? Number(pageStr) : undefined;
     const limit = limitStr !== undefined ? Number(limitStr) : undefined;
 

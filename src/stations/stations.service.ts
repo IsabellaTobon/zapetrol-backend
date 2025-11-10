@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -156,11 +155,6 @@ export class StationsService {
     page?: number,
     limit?: number,
   ): Promise<StationInRadiusDto[]> {
-    if ([latitude, longitude, radius].some((n) => Number.isNaN(n))) {
-      throw new BadRequestException(
-        'latitud, longitud y radio deben ser numéricos',
-      );
-    }
     this.logger.log(
       `Buscando por radio lat=${latitude} lon=${longitude} r=${radius} ${page ? `page=${page}` : ''} ${limit ? `limit=${limit}` : ''}`,
     );
