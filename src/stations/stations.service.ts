@@ -179,6 +179,7 @@ export class StationsService {
       );
       return raw.map((s) => ({
         id: s._id,
+        stationId: s.idEstacion,
         name: s.nombre,
         coordinates: s.coordenadas,
         distance: s.distancia,
