@@ -190,4 +190,35 @@ export class StationsService {
       this.handleAxiosError(err);
     }
   }
+
+  // GET /estaciones/radio/detalles - Nuevo endpoint optimizado
+  async getStationsInRadiusWithDetails(
+    latitude: number,
+    longitude: number,
+    radius: number,
+    page?: number,
+    limit?: number,
+  ): Promise<StationDetailsDto[]> {
+    const basicStations = await this.getStationsInRadius(
+      latitude,
+      longitude,
+      radius,
+      page,
+      limit,
+    );
+
+    // Filtrar estaciones sin ID y obtener detalles en paralelo
+    const stationsWithId = basicStations.filter((s) => s.stationId);
+    const detailsPromises = stationsWithId.map((s) =>
+      this.getStationDetailsById(s.stationId!).catch((err: unknown) => {
+        this.logger.warn(
+          `Error obteniendo detalles de estación ${s.stationId}: ${(err as Error).message}`,
+        );
+        return null;
+      }),
+    );
+
+    const details = await Promise.all(detailsPromises);
+    return details.filter((d): d is StationDetailsDto => d !== null);
+  }
 }

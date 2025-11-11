@@ -70,4 +70,33 @@ export class StationsController {
       limit,
     );
   }
+
+  // GET /estaciones/radio/detalles - Endpoint optimizado con detalles completos
+  @Get('radio/detalles')
+  getByRadiusWithDetails(
+    @Query('latitud') latStr: string,
+    @Query('longitud') lonStr: string,
+    @Query('radio') radiusStr: string,
+    @Query('page') pageStr?: string,
+    @Query('limit') limitStr?: string,
+  ): Promise<StationDetailsDto[]> {
+    if ([latStr, lonStr, radiusStr].some((v) => v === undefined)) {
+      throw new BadRequestException(
+        'latitud, longitud y radio son obligatorios',
+      );
+    }
+    const latitude = Number(latStr);
+    const longitude = Number(lonStr);
+    const radius = Number(radiusStr);
+    const page = pageStr !== undefined ? Number(pageStr) : undefined;
+    const limit = limitStr !== undefined ? Number(limitStr) : undefined;
+
+    return this.stationsService.getStationsInRadiusWithDetails(
+      latitude,
+      longitude,
+      radius,
+      page,
+      limit,
+    );
+  }
 }
