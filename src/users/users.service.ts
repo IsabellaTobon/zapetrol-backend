@@ -45,4 +45,38 @@ export class UsersService {
     const user = await this.findOne(id);
     return this.repo.remove(user);
   }
+
+  async updateFavorites(id: number, favorites: number[]) {
+    const user = await this.findOne(id);
+    user.favoriteStations = favorites;
+    return this.repo.save(user);
+  }
+
+  async getFavorites(userId: number): Promise<number[]> {
+    const user = await this.findOne(userId);
+    return user.favoriteStations || [];
+  }
+
+  async toggleFavorite(
+    userId: number,
+    stationId: number,
+  ): Promise<{ favorites: number[]; added: boolean }> {
+    const user = await this.findOne(userId);
+    const favorites = user.favoriteStations || [];
+    const index = favorites.indexOf(stationId);
+
+    if (index === -1) {
+      // Add to favorites
+      favorites.push(stationId);
+      user.favoriteStations = favorites;
+      await this.repo.save(user);
+      return { favorites, added: true };
+    } else {
+      // Remove from favorites
+      favorites.splice(index, 1);
+      user.favoriteStations = favorites;
+      await this.repo.save(user);
+      return { favorites, added: false };
+    }
+  }
 }

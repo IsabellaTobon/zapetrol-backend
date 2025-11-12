@@ -30,6 +30,9 @@ export class User {
   @Column({ type: 'varchar', length: 10, default: 'user' })
   role: UserRole;
 
+  @Column({ type: 'json', nullable: true, default: null })
+  favoriteStations: number[];
+
   @CreateDateColumn()
   createdAt: Date;
 
