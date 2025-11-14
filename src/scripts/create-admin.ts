@@ -12,7 +12,6 @@ async function bootstrap() {
   // Verifica si ya existe
   const exists = await usersService.findByEmail(adminEmail);
   if (exists) {
-    console.log('❌ El admin ya existe');
     await app.close();
     return;
   }
@@ -25,10 +24,6 @@ async function bootstrap() {
     password: hashedPassword,
     role: 'admin',
   });
-
-  console.log('✅ Usuario admin creado exitosamente');
-  console.log('📧 Email: admin@test.com');
-  console.log('🔑 Password: Admin123');
 
   await app.close();
 }
