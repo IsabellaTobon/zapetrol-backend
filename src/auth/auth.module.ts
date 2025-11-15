@@ -1,11 +1,12 @@
 // src/auth/auth.module.ts
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { UsersModule } from '../users/users.module';
 import { RolesGuard } from './roles.guard';
+import { JwtAuthGuard } from './jwt.guard';
 
 /** Parse '1d', '2h', '30m', '45s', '7w' -> seconds */
 function parseDurationToSeconds(raw: string): number {
@@ -31,7 +32,7 @@ function parseDurationToSeconds(raw: string): number {
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -47,7 +48,7 @@ function parseDurationToSeconds(raw: string): number {
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, RolesGuard],
-  exports: [RolesGuard],
+  providers: [AuthService, RolesGuard, JwtAuthGuard],
+  exports: [RolesGuard, JwtAuthGuard, JwtModule],
 })
 export class AuthModule {}
