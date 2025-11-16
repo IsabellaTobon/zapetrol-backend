@@ -39,8 +39,6 @@ npm run seed:admin
 - **Email:** `admin@test.com`
 - **Password:** `Admin123`
 
-> ⚠️ **Importante:** Cambia estas credenciales después del primer login en producción.
-
 ### 4. Ejecutar el proyecto
 
 **Modo desarrollo:**
