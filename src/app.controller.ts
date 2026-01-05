@@ -1,10 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Controller, Get, ServiceUnavailableException } from '@nestjs/common';
 import { AppService } from './app.service';
 import { UsersService } from './users/users.service';
 
@@ -20,18 +14,8 @@ export class AppController {
     return this.appService.keepAlive();
   }
 
-  @Get('uptime/users')
-  async uptimeUsers(): Promise<{ ok: true }> {
-    try {
-      await this.usersService.ping();
-      return { ok: true };
-    } catch (err) {
-      throw new ServiceUnavailableException('Database unreachable');
-    }
-  }
-
-  @Post('uptime/ping')
-  async uptimePing(@Body() _body: any): Promise<{ ok: true }> {
+  @Get('uptime/ping')
+  async uptimePing(): Promise<{ ok: true }> {
     try {
       // lightweight DB read to keep the DB awake; do not expose data
       await this.usersService.ping();
