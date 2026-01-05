@@ -33,6 +33,7 @@ export class AppController {
   @Post('uptime/ping')
   async uptimePing(@Body() _body: any): Promise<{ ok: true }> {
     try {
+      // lightweight DB read to keep the DB awake; do not expose data
       await this.usersService.ping();
       return { ok: true };
     } catch (err) {
