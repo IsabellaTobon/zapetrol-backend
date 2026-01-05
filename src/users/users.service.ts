@@ -12,6 +12,12 @@ export class UsersService {
     return this.repo.find();
   }
 
+  // Lightweight DB access used for uptime/keep-alive checks.
+  // Does not return user data; only performs a minimal read.
+  async ping(): Promise<void> {
+    await this.repo.find({ select: ['id'], take: 1 });
+  }
+
   async findOne(id: number) {
     const user = await this.repo.findOne({ where: { id } });
     if (!user) {
